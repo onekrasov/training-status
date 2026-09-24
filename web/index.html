@@ -127,9 +127,7 @@
     </main>
 
     <script>
-      const defaultUrl = './readiness/latest.json';
-      const params = new URLSearchParams(window.location.search);
-      const dataUrl = params.get('dataUrl') || defaultUrl;
+      const dataUrl = './readiness/latest.json';
 
       function setText(id, value) {
         document.getElementById(id).textContent = value;

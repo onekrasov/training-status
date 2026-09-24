@@ -129,6 +129,8 @@ resource "aws_lambda_function" "training_status" {
     variables = {
       TRAINING_BUCKET                          = aws_s3_bucket.training_data.id
       TRAINING_PREFIX                          = var.training_data_prefix
+      PUBLIC_READINESS_BUCKET                  = aws_s3_bucket.web.id
+      PUBLIC_READINESS_PREFIX                  = "readiness"
       STRAVA_CLIENT_ID                         = var.strava_client_id
       STRAVA_CLIENT_SECRET                     = var.strava_client_secret
       STRAVA_REFRESH_TOKEN                     = var.strava_refresh_token

@@ -126,13 +126,14 @@ export function calculateReadiness(workouts: Workout[], now = new Date()): Readi
       .filter((workout) => new Date(workout.startDate) >= acuteWindowStart)
       .reduce((total, workout) => total + workout.tss, 0),
   );
-  const oldestWorkoutDate = workoutsInWindow[0] ? new Date(workoutsInWindow[0].startDate) : now;
-  const observedWindowDays = clamp(
-    Math.ceil((now.getTime() - oldestWorkoutDate.getTime()) / (1000 * 60 * 60 * 24)) + 1,
-    ACUTE_WINDOW_DAYS,
-    WINDOW_DAYS,
-  );
-  const chronicLoadDailyAverage = round(tss42DayTotal / observedWindowDays);
+  const observedWindowDays = workoutsInWindow[0]
+    ? clamp(
+        Math.ceil((now.getTime() - new Date(workoutsInWindow[0].startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1,
+        ACUTE_WINDOW_DAYS,
+        WINDOW_DAYS,
+      )
+    : 0;
+  const chronicLoadDailyAverage = observedWindowDays > 0 ? round(tss42DayTotal / observedWindowDays) : 0;
   const chronicWeeklyEquivalent = chronicLoadDailyAverage * ACUTE_WINDOW_DAYS;
   const loadRatio =
     chronicWeeklyEquivalent > 0 ? acuteLoad7Day / chronicWeeklyEquivalent : acuteLoad7Day > 0 ? 1.5 : 1;

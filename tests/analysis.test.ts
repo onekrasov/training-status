@@ -120,3 +120,12 @@ test('calculateReadiness uses a shortened observed window for recent history', (
   assert.equal(readiness.chronicLoadDailyAverage, 16.14);
   assert.equal(readiness.readinessScore > 95, true);
 });
+
+test('calculateReadiness returns zero chronic load for an empty window', () => {
+  const readiness = calculateReadiness([], new Date('2026-09-24T10:00:00.000Z'));
+
+  assert.equal(readiness.workoutsConsidered, 0);
+  assert.equal(readiness.tss42DayTotal, 0);
+  assert.equal(readiness.chronicLoadDailyAverage, 0);
+  assert.equal(readiness.readinessScore, 100);
+});

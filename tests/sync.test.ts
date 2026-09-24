@@ -31,11 +31,13 @@ function createWorkout(id: string, overrides: Partial<Workout> = {}): Workout {
 
 test('syncWorkouts skips workouts already stored in S3 and updates the index', async () => {
   const storage = new InMemoryStorage();
+  const publicStorage = new InMemoryStorage();
   const existingWorkout = createWorkout('100');
   await storage.putJson('workouts/100.json', existingWorkout);
 
   const result = await syncWorkouts({
     storage,
+    publicReadinessStorage: publicStorage,
     now: new Date('2026-09-24T10:00:00.000Z'),
     stravaClient: {
       async listWorkouts(): Promise<Workout[]> {
@@ -46,6 +48,7 @@ test('syncWorkouts skips workouts already stored in S3 and updates the index', a
 
   const index = await storage.getJson<{ workouts: Array<{ id: string }> }>(DEFAULT_INDEX_KEY);
   const readiness = await storage.getJson<{ workoutsConsidered: number }>(DEFAULT_READINESS_KEY);
+  const publicReadiness = await publicStorage.getJson<{ workoutsConsidered: number }>(DEFAULT_READINESS_KEY);
 
   assert.deepEqual(result, {
     downloaded: 1,
@@ -58,4 +61,5 @@ test('syncWorkouts skips workouts already stored in S3 and updates the index', a
     ['100', '200'],
   );
   assert.equal(readiness?.workoutsConsidered, 2);
+  assert.equal(publicReadiness?.workoutsConsidered, 2);
 });

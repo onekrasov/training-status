@@ -32,9 +32,11 @@ function ensureIndexedWorkout(
 export async function syncWorkouts(options: {
   storage: JsonStorage;
   stravaClient: WorkoutProvider;
+  publicReadinessStorage?: JsonStorage;
   now?: Date;
   indexKey?: string;
   readinessKey?: string;
+  publicReadinessKey?: string;
 }): Promise<SyncResult> {
   const now = options.now ?? new Date();
   const indexKey = options.indexKey ?? DEFAULT_INDEX_KEY;
@@ -88,6 +90,9 @@ export async function syncWorkouts(options: {
 
   const readiness = calculateReadiness(storedWorkouts, now);
   await storage.putJson(readinessKey, readiness);
+  if (options.publicReadinessStorage) {
+    await options.publicReadinessStorage.putJson(options.publicReadinessKey ?? readinessKey, readiness);
+  }
 
   return {
     downloaded,

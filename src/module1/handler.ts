@@ -14,6 +14,8 @@ function requireEnvironmentVariable(name: string): string {
 export async function handler(): Promise<Awaited<ReturnType<typeof syncWorkouts>>> {
   const trainingBucket = requireEnvironmentVariable('TRAINING_BUCKET');
   const trainingPrefix = process.env.TRAINING_PREFIX;
+  const publicReadinessBucket = process.env.PUBLIC_READINESS_BUCKET;
+  const publicReadinessPrefix = process.env.PUBLIC_READINESS_PREFIX;
   const paceThresholdValue = process.env.STRAVA_PACE_THRESHOLD_METERS_PER_SECOND;
   const paceThresholdMetersPerSecond = paceThresholdValue ? Number(paceThresholdValue) : undefined;
 
@@ -21,6 +23,12 @@ export async function handler(): Promise<Awaited<ReturnType<typeof syncWorkouts>
     bucket: trainingBucket,
     prefix: trainingPrefix,
   });
+  const publicReadinessStorage = publicReadinessBucket
+    ? new S3JsonStorage({
+        bucket: publicReadinessBucket,
+        prefix: publicReadinessPrefix,
+      })
+    : undefined;
 
   const stravaClient = createStravaClient({
     clientId: requireEnvironmentVariable('STRAVA_CLIENT_ID'),
@@ -34,6 +42,7 @@ export async function handler(): Promise<Awaited<ReturnType<typeof syncWorkouts>
 
   return syncWorkouts({
     storage,
+    publicReadinessStorage,
     stravaClient,
   });
 }

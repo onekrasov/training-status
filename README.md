@@ -39,6 +39,8 @@ Module 1 expects:
 
 - `TRAINING_BUCKET`
 - `TRAINING_PREFIX` (optional)
+- `PUBLIC_READINESS_BUCKET` (optional public bucket for the aggregated readiness JSON)
+- `PUBLIC_READINESS_PREFIX` (optional)
 - `STRAVA_CLIENT_ID`
 - `STRAVA_CLIENT_SECRET`
 - `STRAVA_REFRESH_TOKEN`
