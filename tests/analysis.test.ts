@@ -96,3 +96,27 @@ test('calculateReadiness only includes the last 42 days', () => {
     true,
   );
 });
+
+test('calculateReadiness uses a shortened observed window for recent history', () => {
+  const readiness = calculateReadiness(
+    [
+      createWorkout({
+        id: 'recent-cycle',
+        startDate: '2026-09-23T08:00:00.000Z',
+        averagePowerWatts: 210,
+        zones: { power: { thresholdWatts: 300 } },
+      }),
+      createWorkout({
+        id: 'recent-run',
+        type: 'running',
+        startDate: '2026-09-22T08:00:00.000Z',
+        averagePaceMetersPerSecond: 4,
+        zones: { pace: { thresholdMetersPerSecond: 5 } },
+      }),
+    ],
+    new Date('2026-09-24T10:00:00.000Z'),
+  );
+
+  assert.equal(readiness.chronicLoadDailyAverage, 16.14);
+  assert.equal(readiness.readinessScore > 95, true);
+});

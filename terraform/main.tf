@@ -120,7 +120,7 @@ resource "aws_lambda_function" "training_status" {
   function_name    = "training-status-sync"
   filename         = var.lambda_package_path
   source_code_hash = filebase64sha256(var.lambda_package_path)
-  handler          = "src/module1/handler.handler"
+  handler          = "dist/src/module1/handler.handler"
   role             = aws_iam_role.lambda.arn
   runtime          = "nodejs22.x"
   timeout          = 60

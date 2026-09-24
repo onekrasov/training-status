@@ -3,8 +3,23 @@ import { GetObjectCommand, NoSuchKey, PutObjectCommand, S3Client } from '@aws-sd
 import type { JsonStorage } from './types';
 
 function normalizeKey(prefix: string | undefined, key: string): string {
-  const cleanPrefix = (prefix ?? '').replace(/^\/+|\/+$/g, '');
+  const cleanPrefix = trimSlashes(prefix ?? '');
   return cleanPrefix ? `${cleanPrefix}/${key}` : key;
+}
+
+function trimSlashes(value: string): string {
+  let start = 0;
+  let end = value.length;
+
+  while (start < end && value[start] === '/') {
+    start += 1;
+  }
+
+  while (end > start && value[end - 1] === '/') {
+    end -= 1;
+  }
+
+  return value.slice(start, end);
 }
 
 async function bodyToString(body: unknown): Promise<string> {
@@ -40,7 +55,11 @@ export class S3JsonStorage implements JsonStorage {
       const content = await bodyToString(response.Body);
       return JSON.parse(content) as T;
     } catch (error) {
-      if (error instanceof NoSuchKey || (error as { name?: string }).name === 'NoSuchKey') {
+      if (
+        error instanceof NoSuchKey ||
+        (error as { name?: string }).name === 'NoSuchKey' ||
+        (error as { name?: string }).name === 'NotFound'
+      ) {
         return undefined;
       }
 

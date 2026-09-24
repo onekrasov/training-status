@@ -142,7 +142,13 @@
         items.forEach((item) => {
           const row = document.createElement('div');
           row.className = 'row';
-          row.innerHTML = `<span>${item.source} · ${item.workoutCount} workouts</span><strong>${item.tss}</strong>`;
+          const label = document.createElement('span');
+          label.textContent = `${item.source} · ${item.workoutCount} workouts`;
+
+          const value = document.createElement('strong');
+          value.textContent = String(item.tss);
+
+          row.append(label, value);
           container.appendChild(row);
         });
       }
