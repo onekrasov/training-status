@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Training Status</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --panel: #111827;
+        --panel-alt: #1f2937;
+        --text: #e5e7eb;
+        --muted: #9ca3af;
+        --accent: #34d399;
+        --accent-2: #60a5fa;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(180deg, var(--bg), #020617);
+        color: var(--text);
+        min-height: 100vh;
+      }
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 48px 20px 80px;
+      }
+      h1 { margin-bottom: 24px; font-size: 2.2rem; }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+      }
+      .card {
+        background: rgba(17, 24, 39, 0.9);
+        border: 1px solid rgba(148, 163, 184, 0.15);
+        border-radius: 16px;
+        padding: 20px;
+      }
+      .label {
+        color: var(--muted);
+        font-size: 0.8rem;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .value {
+        font-size: clamp(2rem, 4vw, 3rem);
+        font-weight: 700;
+      }
+      .trend {
+        margin-top: 32px;
+        background: var(--panel);
+        border-radius: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.15);
+        padding: 24px;
+      }
+      .trend-header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+      .trend-header .label { margin-bottom: 0; }
+      .trend-summary {
+        color: var(--muted);
+        font-size: 0.85rem;
+        text-align: right;
+      }
+      .sparkline {
+        height: 180px;
+        background: linear-gradient(180deg, rgba(96,165,250,0.15), rgba(52,211,153,0.05));
+        border-radius: 12px;
+        display: flex;
+        align-items: end;
+        justify-content: space-around;
+        padding: 18px 12px 12px;
+        gap: 8px;
+      }
+      .bar-column {
+        align-items: center;
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        height: 100%;
+        justify-content: end;
+        min-width: 0;
+      }
+      .bar-value {
+        color: var(--text);
+        font-size: 0.7rem;
+        margin-bottom: 6px;
+        min-height: 14px;
+      }
+      .bar {
+        min-height: 3px;
+        width: min(100%, 28px);
+        background: linear-gradient(180deg, var(--accent-2), var(--accent));
+        border-radius: 4px 4px 0 0;
+      }
+      .bar-label {
+        color: var(--muted);
+        font-size: 0.65rem;
+        margin-top: 8px;
+      }
+      .activity-list {
+        margin-top: 32px;
+        background: var(--panel);
+        border: 1px solid rgba(148, 163, 184, 0.15);
+        border-radius: 16px;
+        overflow: hidden;
+      }
+      .activity-list-header {
+        align-items: baseline;
+        display: flex;
+        justify-content: space-between;
+        padding: 24px 24px 16px;
+      }
+      .activity-list-header .label { margin-bottom: 0; }
+      .activity-count {
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+      .activity-table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      .activity-table th,
+      .activity-table td {
+        border-top: 1px solid rgba(148, 163, 184, 0.12);
+        padding: 14px 24px;
+        text-align: left;
+      }
+      .activity-table th {
+        color: var(--muted);
+        font-size: 0.7rem;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .activity-table td {
+        font-size: 0.9rem;
+      }
+      .activity-table td:last-child,
+      .activity-table th:last-child {
+        text-align: right;
+      }
+      .activity-sport {
+        color: var(--accent);
+        font-weight: 600;
+        text-transform: capitalize;
+      }
+      .activity-tss {
+        color: var(--text);
+        font-weight: 700;
+      }
+      .empty-state {
+        color: var(--muted);
+        padding: 24px;
+        text-align: center;
+      }
+      @media (max-width: 600px) {
+        .trend-header { align-items: flex-start; flex-direction: column; gap: 4px; }
+        .trend-summary { text-align: left; }
+        .bar-label { font-size: 0.58rem; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Training Status</h1>
+      <div class="grid">
+        <div class="card">
+          <div class="label">Readiness</div>
+          <div class="value" id="readiness">--</div>
+        </div>
+        <div class="card">
+          <div class="label">Fatigue</div>
+          <div class="value" id="fatigue">--</div>
+        </div>
+        <div class="card">
+          <div class="label">TSS today</div>
+          <div class="value" id="tss">--</div>
+        </div>
+        <div class="card">
+          <div class="label">Load</div>
+          <div class="value" id="load">--</div>
+        </div>
+      </div>
+
+      <div class="trend">
+        <div class="trend-header">
+          <div class="label">Daily TSS · last 14 days</div>
+          <div class="trend-summary" id="trend-summary">Loading activity load...</div>
+        </div>
+        <div class="sparkline" id="sparkline"></div>
+      </div>
+
+      <section class="activity-list" aria-labelledby="activity-heading">
+        <div class="activity-list-header">
+          <div class="label" id="activity-heading">Recent activities · last 14 days</div>
+          <div class="activity-count" id="activity-count">Loading...</div>
+        </div>
+        <table class="activity-table">
+          <thead>
+            <tr>
+              <th scope="col">When</th>
+              <th scope="col">Sport</th>
+              <th scope="col">Duration</th>
+              <th scope="col">TSS</th>
+            </tr>
+          </thead>
+          <tbody id="activity-rows"></tbody>
+        </table>
+      </section>
+    </div>
+
+    <script>
+      async function loadData() {
+        try {
+          const response = await fetch(`./data/training-status.json?ts=${Date.now()}`, {
+            cache: 'no-store',
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const data = await response.json();
+          const metrics = data.metrics ?? {};
+
+          document.getElementById('readiness').textContent = `${metrics.readiness ?? 0}%`;
+          document.getElementById('fatigue').textContent = `${metrics.fatigue ?? 0}`;
+          document.getElementById('tss').textContent = `${metrics.tss ?? 0}`;
+          document.getElementById('load').textContent = `${metrics.load ?? 0}`;
+
+          const sparkline = document.getElementById('sparkline');
+          const referenceDate = new Date(metrics.date ?? data.generatedAt ?? Date.now());
+          const dailyTss = new Map();
+          (data.activities ?? []).forEach((activity) => {
+            const day = new Date(activity.startDate).toISOString().slice(0, 10);
+            dailyTss.set(day, (dailyTss.get(day) ?? 0) + (activity.tss ?? 0));
+          });
+          const days = Array.from({ length: 14 }, (_, index) => {
+            const date = new Date(referenceDate);
+            date.setUTCDate(date.getUTCDate() - (13 - index));
+            return date;
+          });
+          const values = days.map((date) => dailyTss.get(date.toISOString().slice(0, 10)) ?? 0);
+          const maxTss = Math.max(...values, 1);
+          const periodTss = values.reduce((sum, value) => sum + value, 0);
+          document.getElementById('trend-summary').textContent = `${periodTss} TSS across ${values.filter((value) => value > 0).length} training days`;
+          sparkline.innerHTML = '';
+          values.forEach((value, index) => {
+            const column = document.createElement('div');
+            column.className = 'bar-column';
+            column.title = `${days[index].toISOString().slice(0, 10)}: ${value} TSS`;
+            const valueLabel = document.createElement('div');
+            valueLabel.className = 'bar-value';
+            valueLabel.textContent = value > 0 ? `${value}` : '';
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            bar.style.height = `${value > 0 ? Math.max(4, (value / maxTss) * 100) : 3}%`;
+            const dateLabel = document.createElement('div');
+            dateLabel.className = 'bar-label';
+            dateLabel.textContent = days[index].toLocaleDateString(undefined, { month: 'numeric', day: 'numeric', timeZone: 'UTC' });
+            column.append(valueLabel, bar, dateLabel);
+            sparkline.appendChild(column);
+          });
+
+          const firstDay = new Date(referenceDate);
+          firstDay.setUTCDate(firstDay.getUTCDate() - 13);
+          const firstDayKey = firstDay.toISOString().slice(0, 10);
+          const referenceDayKey = referenceDate.toISOString().slice(0, 10);
+          const activities = [...(data.activities ?? [])]
+            .filter((activity) => {
+              const day = new Date(activity.startDate).toISOString().slice(0, 10);
+              return day >= firstDayKey && day <= referenceDayKey;
+            })
+            .sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+          const activityRows = document.getElementById('activity-rows');
+          document.getElementById('activity-count').textContent = `${activities.length} activities`;
+          activityRows.innerHTML = '';
+          if (activities.length === 0) {
+            activityRows.innerHTML = '<tr><td class="empty-state" colspan="4">No recent activities</td></tr>';
+          } else {
+            activities.forEach((activity) => {
+              const row = document.createElement('tr');
+              const when = new Date(activity.startDate).toLocaleString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+              });
+              const durationMinutes = Math.round((activity.durationSeconds ?? 0) / 60);
+              const duration = durationMinutes >= 60
+                ? `${Math.floor(durationMinutes / 60)}h ${durationMinutes % 60}m`
+                : `${durationMinutes}m`;
+              row.innerHTML = `
+                <td>${when}</td>
+                <td class="activity-sport">${activity.sportType}</td>
+                <td>${duration}</td>
+                <td class="activity-tss">${activity.tss ?? 0}</td>
+              `;
+              activityRows.appendChild(row);
+            });
+          }
+        } catch (error) {
+          console.error('Unable to load local data', error);
+          document.getElementById('readiness').textContent = 'N/A';
+          document.getElementById('fatigue').textContent = 'N/A';
+          document.getElementById('tss').textContent = 'N/A';
+          document.getElementById('load').textContent = 'N/A';
+        }
+      }
+
+      loadData();
+    </script>
+  </body>
+</html>

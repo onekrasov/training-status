@@ -1,0 +1,28 @@
+{
+  "name": "training-status",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run",
+    "local:up": "docker compose up -d --wait localstack",
+    "local:down": "docker compose down",
+    "dev:localstack": "docker compose up -d --wait localstack",
+    "dev:processing": "tsx watch apps/processing/src/index.ts",
+    "dev:web": "python3 -m http.server 4173 --directory apps/web/public",
+    "local:process": "docker compose up -d --wait localstack && tsx apps/processing/src/index.ts && node scripts/sync-local-data.mjs",
+    "local:sync": "node scripts/sync-local-data.mjs",
+    "package:lambda": "npm run build && node scripts/package-lambda.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  }
+}

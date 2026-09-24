@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  localstack:
+    image: localstack/localstack:latest
+    container_name: training-status-localstack
+    ports:
+      - '4566:4566'
+    environment:
+      - SERVICES=s3
+      - DEBUG=1
+      - HOSTNAME_EXTERNAL=localhost
+      - AWS_DEFAULT_REGION=eu-west-1
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:4566/_localstack/health || exit 1']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s

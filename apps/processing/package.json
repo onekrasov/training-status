@@ -1,0 +1,21 @@
+{
+  "name": "@training-status/processing",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "dev": "tsx watch src/index.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.684.0",
+    "@aws-sdk/client-s3": "^3.684.0",
+    "dotenv": "^16.4.5",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  }
+}
