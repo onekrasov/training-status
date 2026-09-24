@@ -12,6 +12,18 @@ function workoutStorageKey(id: string): string {
   return `workouts/${id}.json`;
 }
 
+function getNewestIndexedWorkoutStartDate(index: WorkoutIndex): Date | undefined {
+  const timestamps = index.workouts
+    .map((entry) => Date.parse(entry.startDate))
+    .filter((timestamp) => Number.isFinite(timestamp));
+
+  if (!timestamps.length) {
+    return undefined;
+  }
+
+  return new Date(Math.max(...timestamps));
+}
+
 function ensureIndexedWorkout(
   index: WorkoutIndex,
   workout: Workout,
@@ -52,10 +64,7 @@ export async function syncWorkouts(options: {
     } satisfies WorkoutIndex);
 
   const indexedIds = new Set(index.workouts.map((entry) => entry.id));
-  const newestIndexedWorkout = index.workouts[index.workouts.length - 1];
-  const workouts = await options.stravaClient.listWorkouts(
-    newestIndexedWorkout ? new Date(newestIndexedWorkout.startDate) : undefined,
-  );
+  const workouts = await options.stravaClient.listWorkouts(getNewestIndexedWorkoutStartDate(index));
 
   let downloaded = 0;
   let skipped = 0;

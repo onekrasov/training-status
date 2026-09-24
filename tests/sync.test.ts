@@ -95,3 +95,43 @@ test('syncWorkouts requests only workouts after the newest indexed entry', async
 
   assert.equal(requestedAfter?.toISOString(), '2026-09-20T08:00:00.000Z');
 });
+
+test('syncWorkouts finds the newest indexed workout even when the index order is stale', async () => {
+  const storage = new InMemoryStorage();
+  await storage.putJson(DEFAULT_INDEX_KEY, {
+    updatedAt: '2026-09-20T10:00:00.000Z',
+    workouts: [
+      {
+        id: 'newer',
+        key: 'workouts/newer.json',
+        type: 'cycling',
+        startDate: '2026-09-22T08:00:00.000Z',
+        downloadedAt: '2026-09-22T10:00:00.000Z',
+      },
+      {
+        id: 'older',
+        key: 'workouts/older.json',
+        type: 'cycling',
+        startDate: '2026-09-20T08:00:00.000Z',
+        downloadedAt: '2026-09-20T10:00:00.000Z',
+      },
+    ],
+  });
+  await storage.putJson('workouts/newer.json', createWorkout('newer', { startDate: '2026-09-22T08:00:00.000Z' }));
+  await storage.putJson('workouts/older.json', createWorkout('older', { startDate: '2026-09-20T08:00:00.000Z' }));
+
+  let requestedAfter: Date | undefined;
+
+  await syncWorkouts({
+    storage,
+    now: new Date('2026-09-24T10:00:00.000Z'),
+    stravaClient: {
+      async listWorkouts(after?: Date): Promise<Workout[]> {
+        requestedAfter = after;
+        return [];
+      },
+    },
+  });
+
+  assert.equal(requestedAfter?.toISOString(), '2026-09-22T08:00:00.000Z');
+});

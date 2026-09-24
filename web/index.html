@@ -168,7 +168,7 @@
           setText('workouts', String(readiness.workoutsConsidered));
           renderBreakdown(readiness.breakdown || []);
         } catch (error) {
-          setText('updated', error.message);
+          setText('updated', error instanceof Error ? error.message : String(error));
         }
       }
 
