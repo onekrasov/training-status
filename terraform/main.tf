@@ -111,6 +111,15 @@ resource "aws_iam_role_policy" "lambda" {
           aws_s3_bucket.training_data.arn,
           "${aws_s3_bucket.training_data.arn}/*"
         ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject"
+        ]
+        Resource = [
+          "${aws_s3_bucket.web.arn}/readiness/*"
+        ]
       }
     ]
   })

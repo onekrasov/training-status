@@ -129,3 +129,26 @@ test('calculateReadiness returns zero chronic load for an empty window', () => {
   assert.equal(readiness.chronicLoadDailyAverage, 0);
   assert.equal(readiness.readinessScore, 100);
 });
+
+test('calculateReadiness excludes future-dated workouts', () => {
+  const readiness = calculateReadiness(
+    [
+      createWorkout({
+        id: 'future-cycle',
+        startDate: '2026-09-25T08:00:00.000Z',
+        averagePowerWatts: 240,
+        zones: { power: { thresholdWatts: 300 } },
+      }),
+      createWorkout({
+        id: 'recent-cycle',
+        startDate: '2026-09-23T08:00:00.000Z',
+        averagePowerWatts: 210,
+        zones: { power: { thresholdWatts: 300 } },
+      }),
+    ],
+    new Date('2026-09-24T10:00:00.000Z'),
+  );
+
+  assert.equal(readiness.workoutsConsidered, 1);
+  assert.equal(readiness.tss42DayTotal, 49);
+});

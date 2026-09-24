@@ -116,7 +116,10 @@ export function calculateReadiness(workouts: Workout[], now = new Date()): Readi
   acuteWindowStart.setUTCDate(acuteWindowStart.getUTCDate() - ACUTE_WINDOW_DAYS);
 
   const workoutsInWindow = workouts
-    .filter((workout) => new Date(workout.startDate) >= windowStart)
+    .filter((workout) => {
+      const workoutDate = new Date(workout.startDate);
+      return workoutDate >= windowStart && workoutDate <= now;
+    })
     .sort((left, right) => left.startDate.localeCompare(right.startDate));
 
   const workoutTss = workoutsInWindow.map(calculateWorkoutTss);
