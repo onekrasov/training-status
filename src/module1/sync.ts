@@ -5,7 +5,7 @@ export const DEFAULT_INDEX_KEY = 'index.json';
 export const DEFAULT_READINESS_KEY = 'readiness/latest.json';
 
 export interface WorkoutProvider {
-  listWorkouts(): Promise<Workout[]>;
+  listWorkouts(after?: Date): Promise<Workout[]>;
 }
 
 function workoutStorageKey(id: string): string {
@@ -52,7 +52,10 @@ export async function syncWorkouts(options: {
     } satisfies WorkoutIndex);
 
   const indexedIds = new Set(index.workouts.map((entry) => entry.id));
-  const workouts = await options.stravaClient.listWorkouts();
+  const newestIndexedWorkout = index.workouts[index.workouts.length - 1];
+  const workouts = await options.stravaClient.listWorkouts(
+    newestIndexedWorkout ? new Date(newestIndexedWorkout.startDate) : undefined,
+  );
 
   let downloaded = 0;
   let skipped = 0;

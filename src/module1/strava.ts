@@ -25,7 +25,7 @@ interface StravaZonesResponse {
 }
 
 export interface StravaClient {
-  listWorkouts(): Promise<Workout[]>;
+  listWorkouts(after?: Date): Promise<Workout[]>;
 }
 
 function normalizeType(type: string | undefined): ActivityType {
@@ -59,8 +59,16 @@ function normalizeType(type: string | undefined): ActivityType {
 }
 
 function getThreshold(zones: Array<{ min?: number; max?: number }> | undefined): number | undefined {
-  const lastZone = zones?.[zones.length - 1];
-  return lastZone?.min ?? lastZone?.max;
+  if (!zones?.length) {
+    return undefined;
+  }
+
+  if (zones.length >= 4) {
+    return zones[3]?.min ?? zones[2]?.max;
+  }
+
+  const penultimateZone = zones[zones.length - 2];
+  return penultimateZone?.max ?? penultimateZone?.min ?? zones[zones.length - 1]?.min ?? zones[zones.length - 1]?.max;
 }
 
 function buildWorkoutZones(
@@ -119,12 +127,13 @@ export function createStravaClient(options: {
     return response.access_token;
   }
 
-  async function listActivities(accessToken: string): Promise<StravaActivity[]> {
+  async function listActivities(accessToken: string, after?: Date): Promise<StravaActivity[]> {
     const activities: StravaActivity[] = [];
+    const afterQuery = after ? `&after=${Math.floor(after.getTime() / 1000)}` : '';
 
     for (let page = 1; ; page += 1) {
       const pageItems = await fetchJson<StravaActivity[]>(
-        `https://www.strava.com/api/v3/athlete/activities?per_page=200&page=${page}`,
+        `https://www.strava.com/api/v3/athlete/activities?per_page=200&page=${page}${afterQuery}`,
         {
           headers: {
             authorization: 'Bearer ' + accessToken,
@@ -151,9 +160,9 @@ export function createStravaClient(options: {
   }
 
   return {
-    async listWorkouts(): Promise<Workout[]> {
+    async listWorkouts(after?: Date): Promise<Workout[]> {
       const accessToken = await getAccessToken();
-      const [activities, zones] = await Promise.all([listActivities(accessToken), getZones(accessToken)]);
+      const [activities, zones] = await Promise.all([listActivities(accessToken, after), getZones(accessToken)]);
 
       return activities.map((activity) => {
         const type = normalizeType(activity.sport_type ?? activity.type);

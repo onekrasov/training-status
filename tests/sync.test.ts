@@ -63,3 +63,35 @@ test('syncWorkouts skips workouts already stored in S3 and updates the index', a
   assert.equal(readiness?.workoutsConsidered, 2);
   assert.equal(publicReadiness?.workoutsConsidered, 2);
 });
+
+test('syncWorkouts requests only workouts after the newest indexed entry', async () => {
+  const storage = new InMemoryStorage();
+  await storage.putJson(DEFAULT_INDEX_KEY, {
+    updatedAt: '2026-09-20T10:00:00.000Z',
+    workouts: [
+      {
+        id: '100',
+        key: 'workouts/100.json',
+        type: 'cycling',
+        startDate: '2026-09-20T08:00:00.000Z',
+        downloadedAt: '2026-09-20T10:00:00.000Z',
+      },
+    ],
+  });
+  await storage.putJson('workouts/100.json', createWorkout('100'));
+
+  let requestedAfter: Date | undefined;
+
+  await syncWorkouts({
+    storage,
+    now: new Date('2026-09-24T10:00:00.000Z'),
+    stravaClient: {
+      async listWorkouts(after?: Date): Promise<Workout[]> {
+        requestedAfter = after;
+        return [];
+      },
+    },
+  });
+
+  assert.equal(requestedAfter?.toISOString(), '2026-09-20T08:00:00.000Z');
+});

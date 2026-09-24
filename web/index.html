@@ -98,7 +98,7 @@
           <div class="label">Training readiness</div>
           <div id="score" class="score">--</div>
         </div>
-        <div id="updated" class="status" role="status" aria-live="polite">Loading…</div>
+        <div id="updated" class="status" role="status" aria-live="polite"></div>
       </div>
 
       <section class="grid">
@@ -153,6 +153,7 @@
 
       async function load() {
         try {
+          setText('updated', 'Loading…');
           const response = await fetch(dataUrl, { cache: 'no-store' });
           if (!response.ok) {
             throw new Error(`Failed to load data (${response.status})`);
