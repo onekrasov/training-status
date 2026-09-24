@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Training Status</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, system-ui, sans-serif;
+        --bg: #0f172a;
+        --panel: #111827;
+        --accent: #38bdf8;
+        --accent-soft: rgba(56, 189, 248, 0.16);
+        --text: #e5eefb;
+        --muted: #94a3b8;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(180deg, #020617 0%, var(--bg) 100%);
+        color: var(--text);
+        padding: 24px;
+      }
+
+      .card {
+        width: min(760px, 100%);
+        background: rgba(17, 24, 39, 0.92);
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        border-radius: 24px;
+        padding: 24px;
+        box-shadow: 0 20px 50px rgba(15, 23, 42, 0.4);
+      }
+
+      .title {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        align-items: baseline;
+      }
+
+      .score {
+        font-size: clamp(3rem, 8vw, 4.5rem);
+        font-weight: 800;
+        color: var(--accent);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        margin: 24px 0;
+      }
+
+      .metric,
+      .row {
+        background: var(--accent-soft);
+        border-radius: 18px;
+        padding: 16px;
+      }
+
+      .label {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .value {
+        margin-top: 8px;
+        font-size: 1.4rem;
+        font-weight: 700;
+      }
+
+      .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-top: 12px;
+      }
+
+      .status {
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <div class="title">
+        <div>
+          <div class="label">Training readiness</div>
+          <div id="score" class="score">--</div>
+        </div>
+        <div id="updated" class="status">Loading…</div>
+      </div>
+
+      <section class="grid">
+        <article class="metric">
+          <div class="label">42-day TSS</div>
+          <div id="tssTotal" class="value">--</div>
+        </article>
+        <article class="metric">
+          <div class="label">7-day acute load</div>
+          <div id="acuteLoad" class="value">--</div>
+        </article>
+        <article class="metric">
+          <div class="label">Daily chronic load</div>
+          <div id="chronicLoad" class="value">--</div>
+        </article>
+        <article class="metric">
+          <div class="label">Workouts in window</div>
+          <div id="workouts" class="value">--</div>
+        </article>
+      </section>
+
+      <section>
+        <div class="label">TSS source breakdown</div>
+        <div id="breakdown"></div>
+      </section>
+    </main>
+
+    <script>
+      const defaultUrl = './readiness/latest.json';
+      const params = new URLSearchParams(window.location.search);
+      const dataUrl = params.get('dataUrl') || defaultUrl;
+
+      function setText(id, value) {
+        document.getElementById(id).textContent = value;
+      }
+
+      function renderBreakdown(items) {
+        const container = document.getElementById('breakdown');
+        container.innerHTML = '';
+
+        items.forEach((item) => {
+          const row = document.createElement('div');
+          row.className = 'row';
+          row.innerHTML = `<span>${item.source} · ${item.workoutCount} workouts</span><strong>${item.tss}</strong>`;
+          container.appendChild(row);
+        });
+      }
+
+      async function load() {
+        try {
+          const response = await fetch(dataUrl, { cache: 'no-store' });
+          if (!response.ok) {
+            throw new Error(`Failed to load data (${response.status})`);
+          }
+
+          const readiness = await response.json();
+          setText('score', readiness.readinessScore.toFixed(0));
+          setText('updated', `Updated ${new Date(readiness.generatedAt).toLocaleString()}`);
+          setText('tssTotal', readiness.tss42DayTotal.toFixed(2));
+          setText('acuteLoad', readiness.acuteLoad7Day.toFixed(2));
+          setText('chronicLoad', readiness.chronicLoadDailyAverage.toFixed(2));
+          setText('workouts', String(readiness.workoutsConsidered));
+          renderBreakdown(readiness.breakdown || []);
+        } catch (error) {
+          setText('updated', error.message);
+        }
+      }
+
+      load();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "name": "training-status",
+  "version": "1.0.0",
+  "description": "Training status widget",
+  "main": "dist/src/index.js",
+  "scripts": {
+    "build": "tsc --project tsconfig.json && node scripts/copy-web-assets.mjs",
+    "test": "npm run build && node --test dist/tests/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://localhost:26831/onekrasov/training-status"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1139.0"
+  }
+}
